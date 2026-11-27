@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Asistente Arduino</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@800;900&display=swap">
+<style>
+:root{--bg:#eef1ec;--card:#fff;--ink:#12302b;--mut:#4d6560;--ac:#00878f;--acs:#d5eceb;--cu:#a8641c;--line:#c9d4cf;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1c1a;--card:#172826;--ink:#e6f0ed;--mut:#9fb8b2;--ac:#4fc3c9;--acs:#1c3b3a;--cu:#e0a05a;--line:#2c4540}}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:760px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:1.7rem;line-height:1.2;margin:8px 0 4px;letter-spacing:-.01em}
+.sub{color:var(--mut);margin:0 0 18px}
+form{display:flex;gap:8px;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:5}
+input{flex:1;min-width:0;font:inherit;padding:12px 14px;border:2px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink)}
+input:focus,button:focus-visible,summary:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px}
+.go{background:var(--ac);color:#fff;padding:0 18px;font-weight:600}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .go{color:#08201f}}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 18px}
+.chip{background:var(--acs);color:var(--ink);padding:8px 12px;font-size:.92rem;border:1px solid var(--line)}
+.card{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--ac);border-radius:6px 12px 12px 6px;padding:16px 18px;margin:14px 0}
+.card h2{font-size:1.25rem;margin:0 0 8px}
+.card h3{font-size:1.02rem;margin:16px 0 6px;color:var(--cu)}
+.card p{margin:6px 0}
+.card ul{margin:6px 0;padding-left:20px}
+li{margin:4px 0}
+.you{margin:20px 0 0;text-align:right;color:var(--mut);font-size:.92rem}
+details{border-top:1px solid var(--line);padding:10px 0}
+summary{cursor:pointer;font-weight:600;list-style:none}
+summary::before{content:"+ ";color:var(--ac);font-weight:700}
+details[open] summary::before{content:"– "}
+.tag{display:inline-block;font-size:.8rem;background:var(--acs);border-radius:6px;padding:1px 8px;margin-left:6px;color:var(--mut);font-weight:400}
+.parts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.part{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--bg)}
+.part b{display:block}
+.note{color:var(--mut);font-size:.92rem}
+svg{display:block;width:100%;height:auto}
+.pc{fill:#0a7c85}.bl{fill:#2d7fc1}.mt{fill:#c3cacb}.dk{fill:#2b3a38}.gd{fill:#c98a3c}.rd{fill:#d64545}.wh{fill:#f2f4f2}
+.pc,.bl,.mt,.dk,.gd,.rd,.wh{stroke:rgba(0,0,0,.4);stroke-width:.8}
+.tw{fill:#fff;font:600 9px system-ui,sans-serif}.td{fill:#1b2523;font:600 9px system-ui,sans-serif}.tx{fill:var(--ink);font:600 10px system-ui,sans-serif}
+summary{display:flex;align-items:center;gap:12px}
+.ico{width:72px;flex:none}.ico.big{width:120px}
+.fig{max-width:460px;margin:8px auto 14px}
+.boards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:8px 0}
+.boards figure{margin:0;border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--bg)}
+.boards figcaption{font-size:.9rem;margin-top:6px}
+.code{display:block;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;overflow-x:auto;font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;white-space:pre;margin:6px 0}
+.opt{display:block;width:100%;text-align:left;margin:8px 0;padding:11px 14px;background:var(--bg);border:1px solid var(--line);color:var(--ink)}
+.opt.ok{background:#cdeedd;border-color:#2e9b63;color:#0d3a24}.opt.no{background:#f7d4d4;border-color:#c24a4a;color:#4a1414}
+#bg{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.34;color:var(--ac)}
+#bg svg{width:100%;height:100%}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #bg{opacity:.62}}
+@keyframes pl{50%{opacity:.3}}
+.pulse{animation:pl 4s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.pulse{animation:none}}
+#sig{position:fixed;z-index:-1;pointer-events:none;top:calc(env(safe-area-inset-top,0px) + 14px);right:16px;max-width:min(92vw,720px);text-align:right;color:var(--ac);font-family:Orbitron,Impact,"Arial Black",sans-serif;font-weight:900;text-transform:uppercase;letter-spacing:.04em;line-height:1.15;text-shadow:0 2px 12px rgba(0,135,143,.35)}
+#sig b{display:block;font-size:clamp(1.15rem,3.6vw,2.4rem)}
+#sig span{display:block;margin-bottom:6px;font-size:clamp(.8rem,2.2vw,1.35rem);color:var(--cu);font-weight:800}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #sig{text-shadow:0 0 18px var(--ac)}}
+main{padding-top:clamp(112px,16vw,152px)}
+</style>
+</head>
+<body>
+<div id="bg" aria-hidden="true"></div>
+<div id="sig"><span>Escuela Instituto Técnico Central Lasalle</span><b>Sergio Daniel Velásquez Cortes</b></div>
+<main>
+<h1>Asistente Arduino</h1>
+<p class="sub">Escribe tu pregunta o toca una de las sugerencias. Funciona sin internet.</p>
+<form id="f"><input id="q" type="text" placeholder="Ej: ¿Cómo funciona un Arduino?" autocomplete="off" aria-label="Tu pregunta"><button class="go" type="submit">Preguntar</button></form>
+<div class="chips" id="chips"></div>
+<div id="out"></div>
+</main>
+<script>
+var SENS=[
+{id:"dht11",n:"DHT11 / DHT22",t:"Temperatura y humedad",k:["dht","temperatura","humedad","clima"],q:"Mide la temperatura del aire y el porcentaje de humedad.",c:"Tiene un termistor y un sensor capacitivo de humedad. Un pequeño chip los convierte en una señal digital que el Arduino lee por un solo pin de datos con la librería DHT.",u:["Estación meteorológica","Control de invernaderos","Termostato casero"],p:"Digital"},
+{id:"ldr",n:"LDR (fotorresistencia)",t:"Luz",k:["ldr","luz","fotorresistencia","luminosidad","foto"],q:"Detecta cuánta luz hay en el ambiente.",c:"Es una resistencia que baja su valor cuando recibe más luz. Con una resistencia fija forma un divisor de voltaje y el Arduino lo lee con una entrada analógica (valores de 0 a 1023).",u:["Luces automáticas al anochecer","Seguidor solar","Alarma que detecta una puerta abierta"],p:"Analógico"},
+{id:"hcsr04",n:"HC-SR04",t:"Distancia por ultrasonido",k:["hc-sr04","hcsr04","ultrasonico","ultrasonido","distancia","sonar"],q:"Mide distancias de 2 cm a unos 4 m.",c:"Emite un pulso de sonido ultrasónico y mide cuánto tarda el eco en volver. Distancia = tiempo × velocidad del sonido ÷ 2. Usa un pin Trig (envía) y uno Echo (recibe).",u:["Robot que esquiva obstáculos","Sensor de parqueo","Medidor de nivel de agua en un tanque"],p:"Digital (2 pines)"},
+{id:"pir",n:"PIR (HC-SR501)",t:"Movimiento",k:["pir","movimiento","presencia","hc-sr501","infrarrojo pasivo"],q:"Detecta cuando una persona o animal se mueve cerca.",c:"Percibe cambios en la radiación infrarroja que emite el calor corporal. Cuando algo caliente se mueve, su salida pasa a HIGH (5 V) por unos segundos.",u:["Alarma antirrobo","Luz que se enciende al pasar","Contador de visitantes"],p:"Digital"},
+{id:"pot",n:"Potenciómetro",t:"Giro / posición",k:["potenciometro","pot","perilla","giro"],q:"Entrega un valor distinto según cuánto lo giras.",c:"Es una resistencia variable de tres patas. La central entrega un voltaje entre 0 y 5 V según la posición de la perilla; el Arduino lo lee como un número de 0 a 1023.",u:["Control de volumen o brillo","Mover un servomotor a mano","Ajustar la velocidad de un motor"],p:"Analógico"},
+{id:"suelo",n:"Humedad de suelo",t:"Riego de plantas",k:["suelo","tierra","planta","riego","humedad de suelo","jardin"],q:"Indica qué tan húmeda está la tierra.",c:"Dos láminas conducen más corriente cuando la tierra está mojada. Entrega un valor analógico que baja o sube según el agua. Consejo: los modelos capacitivos duran más porque no se oxidan.",u:["Sistema de riego automático","Aviso de “regar la planta”","Huertas inteligentes"],p:"Analógico"},
+{id:"mq",n:"MQ-2 / MQ-135",t:"Gas y humo",k:["mq","gas","humo","aire","calidad del aire","mq-2","mq-135"],q:"Detecta humo, gas LP, alcohol o mala calidad del aire, según el modelo.",c:"Un elemento calentado cambia su resistencia al contacto con ciertos gases. Necesita unos minutos de precalentamiento y calibración; sus valores son aproximados.",u:["Alarma de fugas de gas","Detector de humo","Monitor de calidad del aire"],p:"Analógico y digital"},
+{id:"lm35",n:"LM35 / TMP36",t:"Temperatura (analógico)",k:["lm35","tmp36","termometro","temperatura analogica"],q:"Mide temperatura con buena precisión.",c:"Entrega un voltaje proporcional a la temperatura (LM35: 10 mV por °C). El Arduino lo lee y lo convierte a grados con una fórmula simple.",u:["Termómetro digital","Ventilador que se activa con el calor","Control de temperatura de un motor"],p:"Analógico"},
+{id:"ir",n:"Infrarrojo de obstáculos / seguidor de línea",t:"Obstáculos y líneas",k:["infrarrojo","ir","obstaculo","seguidor de linea","linea","tcrt5000"],q:"Detecta objetos cercanos o la diferencia entre superficie clara y oscura.",c:"Un LED infrarrojo emite luz y un fotodiodo mide cuánta rebota. Las superficies claras reflejan mucho y las negras poco.",u:["Robot seguidor de línea","Contador de objetos","Detector de proximidad"],p:"Digital"},
+{id:"sonido",n:"Sensor de sonido (KY-038)",t:"Sonido",k:["sonido","ruido","microfono","ky-038","aplauso"],q:"Detecta el nivel de ruido del ambiente.",c:"Un micrófono de condensador genera una señal que se amplifica. Con un potenciómetro se ajusta el umbral para que avise cuando el sonido lo supera.",u:["Interruptor por aplauso","Medidor de ruido","Luces que reaccionan a la música"],p:"Analógico y digital"},
+{id:"boton",n:"Pulsador / botón",t:"Interacción",k:["boton","pulsador","interruptor","switch"],q:"Indica si alguien lo presionó o no.",c:"Cierra un circuito al presionarse. Se conecta a un pin digital con la resistencia pull-up interna: pinMode(pin, INPUT_PULLUP).",u:["Encender y apagar luces","Menús en pantallas","Timbre o juegos de reflejos"],p:"Digital"}
+];
+function sv(b,w,h){return '<svg viewBox="0 0 '+(w||120)+' '+(h||84)+'" role="img" aria-hidden="true">'+b+'</svg>'}
+function pn(x,y,n,g){var s='';for(var i=0;i<n;i++)s+='<rect class="mt" x="'+(x+i*g)+'" y="'+y+'" width="3" height="14"/>';return s}
+function hd(x,y,n,g){var s='<rect class="dk" x="'+(x-3)+'" y="'+y+'" width="'+((n-1)*g+10)+'" height="9" rx="1.5"/>';for(var i=0;i<n;i++)s+='<rect class="gd" x="'+(x+i*g)+'" y="'+(y+3)+'" width="4" height="3"/>';return s}
+function uno(lab){return sv('<rect class="pc" x="14" y="26" width="226" height="104" rx="8"/><rect class="mt" x="2" y="46" width="46" height="34"/><rect class="dk" x="2" y="94" width="38" height="30" rx="3"/><rect class="dk" x="132" y="64" width="70" height="20" rx="2"/><circle class="rd" cx="84" cy="52" r="8"/>'+hd(70,28,16,9)+hd(100,118,16,9)+'<text class="td" x="25" y="67" text-anchor="middle">USB</text><text class="tw" x="21" y="112" text-anchor="middle">Alim.</text><text class="tw" x="167" y="77" text-anchor="middle" style="font-size:8px">ATmega328P</text><text class="tw" x="84" y="72" text-anchor="middle" style="font-size:7px">reset</text><text class="tw" x="110" y="104" style="font-size:12px">Arduino UNO</text>'+(lab?'<text class="tx" x="140" y="16" text-anchor="middle">Pines digitales (0–13)</text><text class="tx" x="170" y="148" text-anchor="middle">Analógicos A0–A5 y energía</text>':''),250,156)}
+function nano(){return sv('<rect class="bl" x="36" y="22" width="190" height="52" rx="4"/><rect class="mt" x="14" y="36" width="26" height="24"/><rect class="dk" x="140" y="35" width="26" height="26"/>'+hd(52,24,15,10)+hd(52,65,15,10)+'<text class="tw" x="70" y="52" style="font-size:12px">Nano</text>',240,96)}
+function mega(){return sv('<rect class="pc" x="14" y="26" width="306" height="104" rx="8"/><rect class="mt" x="2" y="46" width="46" height="34"/><rect class="dk" x="2" y="94" width="38" height="30" rx="3"/><rect class="dk" x="170" y="62" width="34" height="34" rx="2"/>'+hd(70,28,25,9)+hd(70,118,25,9)+'<text class="tw" x="70" y="100" style="font-size:12px">Arduino Mega 2560</text>',330,156)}
+var ICO={
+dht11:sv('<rect class="bl" x="38" y="8" width="44" height="50" rx="4"/>'+(function(){var s='';for(var i=0;i<6;i++)s+='<rect class="dk" x="46" y="'+(16+i*7)+'" width="28" height="3"/>';return s})()+pn(44,58,4,10)),
+ldr:sv('<circle class="gd" cx="60" cy="34" r="24"/><path d="M42 34h8l4-8 6 16 6-16 4 8h8" fill="none" stroke="#2b3a38" stroke-width="3"/>'+pn(48,56,1,0)+pn(69,56,1,0)),
+hcsr04:sv('<rect class="pc" x="12" y="14" width="96" height="46" rx="3"/><circle class="mt" cx="40" cy="37" r="17"/><circle class="dk" cx="40" cy="37" r="10"/><circle class="mt" cx="80" cy="37" r="17"/><circle class="dk" cx="80" cy="37" r="10"/>'+pn(46,60,4,9)),
+pir:sv('<rect class="pc" x="26" y="6" width="68" height="60" rx="4"/><circle class="wh" cx="60" cy="34" r="24"/><path d="M60 10v48M36 34h48" stroke="#c3cacb" stroke-width="1.5"/>'+pn(48,66,3,12)),
+pot:sv('<rect class="bl" x="30" y="12" width="60" height="50" rx="4"/><circle class="mt" cx="60" cy="37" r="17"/><rect class="dk" x="58" y="22" width="4" height="15"/>'+pn(42,62,3,18)),
+suelo:sv('<rect class="pc" x="34" y="4" width="52" height="24" rx="3"/><rect class="gd" x="38" y="28" width="18" height="54" rx="3"/><rect class="gd" x="64" y="28" width="18" height="54" rx="3"/>'),
+mq:sv('<rect class="pc" x="22" y="10" width="76" height="58" rx="3"/><circle class="mt" cx="60" cy="38" r="22"/><circle cx="60" cy="38" r="14" fill="none" stroke="#2b3a38" stroke-width="1.5"/><path d="M46 38h28M60 24v28" stroke="#2b3a38" stroke-width="1.2"/>'+pn(42,68,4,12)),
+lm35:sv('<path class="dk" d="M42 50V30a18 18 0 0 1 36 0v20z"/>'+pn(49,50,3,10).replace(/height="14"/g,'height="30"')),
+ir:sv('<rect class="pc" x="20" y="12" width="80" height="46" rx="3"/><circle class="wh" cx="44" cy="35" r="11"/><circle class="dk" cx="76" cy="35" r="11"/>'+pn(48,58,3,12)),
+sonido:sv('<rect class="pc" x="18" y="12" width="84" height="46" rx="3"/><circle class="mt" cx="46" cy="35" r="16"/><circle class="dk" cx="46" cy="35" r="8"/><rect class="bl" x="72" y="26" width="20" height="18" rx="2"/><circle class="mt" cx="82" cy="35" r="5"/>'+pn(40,58,4,12)),
+boton:sv('<rect class="dk" x="34" y="12" width="52" height="52" rx="6"/><circle class="rd" cx="60" cy="38" r="18"/>'+pn(38,64,2,40)+pn(48,64,2,20))
+};
+var CODE={
+dht11:'// Instala la librería "DHT sensor library" (Adafruit)\n#include <DHT.h>\nDHT dht(2, DHT11); // dato en pin 2\nvoid setup(){ Serial.begin(9600); dht.begin(); }\nvoid loop(){\n  Serial.println(dht.readTemperature());\n  delay(2000);\n}',
+ldr:'void setup(){ Serial.begin(9600); }\nvoid loop(){\n  int luz = analogRead(A0);\n  Serial.println(luz);\n  delay(500);\n}',
+hcsr04:'const int TRIG=9, ECHO=10;\nvoid setup(){\n  Serial.begin(9600);\n  pinMode(TRIG, OUTPUT); pinMode(ECHO, INPUT);\n}\nvoid loop(){\n  digitalWrite(TRIG, LOW); delayMicroseconds(2);\n  digitalWrite(TRIG, HIGH); delayMicroseconds(10);\n  digitalWrite(TRIG, LOW);\n  long t = pulseIn(ECHO, HIGH);\n  Serial.println(t * 0.034 / 2); // cm\n  delay(300);\n}',
+pir:'void setup(){ Serial.begin(9600); pinMode(2, INPUT); pinMode(13, OUTPUT); }\nvoid loop(){\n  bool mov = digitalRead(2);\n  digitalWrite(13, mov);\n  if (mov) Serial.println("Movimiento");\n  delay(200);\n}',
+pot:'void setup(){ Serial.begin(9600); }\nvoid loop(){\n  int v = analogRead(A0);\n  int brillo = map(v, 0, 1023, 0, 255);\n  analogWrite(9, brillo); // LED en pin 9\n  Serial.println(v);\n}',
+suelo:'void setup(){ Serial.begin(9600); }\nvoid loop(){\n  int h = analogRead(A0);\n  // el umbral cambia según tu sensor: pruébalo\n  if (h > 600) Serial.println("Tierra seca");\n  else Serial.println("Tierra húmeda");\n  delay(1000);\n}',
+mq:'void setup(){ Serial.begin(9600); pinMode(8, OUTPUT); }\nvoid loop(){\n  int gas = analogRead(A0);\n  Serial.println(gas);\n  digitalWrite(8, gas > 400); // alarma\n  delay(500);\n}',
+lm35:'void setup(){ Serial.begin(9600); }\nvoid loop(){\n  int lec = analogRead(A0);\n  float grados = lec * 5.0 * 100.0 / 1024.0;\n  Serial.println(grados);\n  delay(1000);\n}',
+ir:'void setup(){ Serial.begin(9600); pinMode(7, INPUT); }\nvoid loop(){\n  if (digitalRead(7) == LOW) Serial.println("Objeto detectado");\n  delay(200);\n}',
+sonido:'void setup(){ Serial.begin(9600); }\nvoid loop(){\n  int ruido = analogRead(A0);\n  Serial.println(ruido);\n  delay(100);\n}',
+boton:'void setup(){ pinMode(2, INPUT_PULLUP); pinMode(13, OUTPUT); }\nvoid loop(){\n  // con pull-up, presionado = LOW\n  digitalWrite(13, digitalRead(2) == LOW);\n}'
+};
+var QZ=[
+{q:"¿Qué función del programa se ejecuta una sola vez al iniciar?",o:["loop()","setup()","main()","start()"],a:1,e:"setup() configura todo al inicio; loop() se repite sin parar después."},
+{q:"¿Qué pines de la UNO leen voltajes variables de 0 a 5 V?",o:["Digitales 0–13","Analógicos A0–A5","Solo GND","Solo el pin 13"],a:1,e:"Los pines analógicos A0–A5 convierten el voltaje en un número de 0 a 1023."},
+{q:"¿Qué sensor mide distancia con ultrasonido?",o:["LDR","PIR","MQ-2","HC-SR04"],a:3,e:"El HC-SR04 envía un pulso de sonido y mide cuánto tarda el eco."},
+{q:"¿Qué mide un LDR?",o:["Luz","Temperatura","Sonido","Gas"],a:0,e:"Su resistencia baja cuando recibe más luz."},
+{q:"¿Con qué cable se carga el programa a la placa UNO?",o:["USB","HDMI","Ethernet","VGA"],a:0,e:"El USB carga el programa y también alimenta la placa."},
+{q:"¿Qué sensor detecta el calor corporal de alguien en movimiento?",o:["PIR","DHT11","Pulsador","LDR"],a:0,e:"El PIR percibe cambios en la radiación infrarroja."},
+{q:"¿Cuál es el cerebro de una Arduino UNO?",o:["Puerto USB","Cristal oscilador","Microcontrolador ATmega328P","Botón reset"],a:2,e:"El microcontrolador ejecuta tu programa."},
+{q:"¿Qué función lee un sensor analógico?",o:["analogRead()","digitalRead()","analogWrite()","delay()"],a:0,e:"analogRead(A0) devuelve un valor de 0 a 1023."}
+];
+var qi=0,sc=0,done=false;
+function qshow(){var c=document.getElementById("qz");done=false;if(qi>=QZ.length){c.innerHTML='<h2>Resultado: '+sc+' de '+QZ.length+'</h2><p>'+(sc>=QZ.length-1?'¡Excelente! Ya dominas lo básico.':sc>=QZ.length/2?'Vas bien. Repasa lo que fallaste.':'Repasa las secciones de Arduino y sensores y vuelve a intentarlo.')+'</p><button class="go" style="padding:10px 18px" onclick="ask(document.getElementById(\'q\').placeholder&&\'quiz\')">Intentar de nuevo</button>';return}
+var q=QZ[qi];c.innerHTML='<h2>Pregunta '+(qi+1)+' de '+QZ.length+'</h2><p>'+q.q+'</p>'+q.o.map(function(x,i){return'<button class="opt" onclick="qans('+i+',this)">'+x+'</button>'}).join('')+'<div id="qf"></div>'}
+function qans(i,b){if(done)return;done=true;var q=QZ[qi];document.querySelectorAll(".opt")[q.a].className+=" ok";if(i===q.a)sc++;else b.className+=" no";document.getElementById("qf").innerHTML='<p><b>'+(i===q.a?'¡Correcto! ':'No es esa. ')+'</b>'+q.e+'</p><button class="go" style="padding:10px 18px" onclick="qnext()">'+(qi+1<QZ.length?'Siguiente':'Ver resultado')+'</button>'}
+function qnext(){qi++;qshow()}
+var INTRO='<div class="card"><h2>¿Qué es Arduino?</h2><p>Arduino es una plataforma de electrónica libre formada por una <b>placa con un microcontrolador</b> (un mini computador de un solo chip) y un programa para escribirle instrucciones. Puedes conectarle sensores, luces, motores y pantallas, y hacer que reaccionen al mundo real.</p><h3>¿Cómo funciona?</h3><ul><li><b>1. Escribes un programa</b> (“sketch”) en el Arduino IDE, en lenguaje parecido a C++.</li><li><b>2. Lo cargas</b> a la placa por cable USB.</li><li><b>3. La placa lo ejecuta en bucle:</b> <code>setup()</code> corre una vez para configurar, y <code>loop()</code> se repite sin parar.</li><li><b>4. Lee entradas</b> (sensores, botones), <b>decide</b> según tu código y <b>activa salidas</b> (LED, motores, buzzer).</li></ul><h3>Partes de una placa Arduino UNO</h3><div class="fig">'+uno(true)+'</div><div class="parts"><div class="part"><b>Microcontrolador ATmega328P</b>Es el cerebro: ejecuta tu programa.</div><div class="part"><b>Pines digitales (0–13)</b>Entradas o salidas de encendido/apagado. Algunos con PWM (~) simulan valores intermedios.</div><div class="part"><b>Pines analógicos (A0–A5)</b>Leen voltajes variables de 0 a 5 V.</div><div class="part"><b>Puerto USB</b>Carga el programa y alimenta la placa.</div><div class="part"><b>Conector de alimentación</b>Para batería o fuente de 7–12 V.</div><div class="part"><b>Pines de energía</b>5V, 3.3V y GND (tierra) para alimentar componentes.</div><div class="part"><b>Botón reset</b>Reinicia el programa.</div><div class="part"><b>Cristal oscilador</b>Marca el ritmo (16 MHz).</div><div class="part"><b>LED integrado (pin 13)</b>Sirve para tu primera prueba.</div></div><h3>Placas Arduino más comunes</h3><div class="boards"><figure>'+uno(false)+'<figcaption><b>UNO</b> La más popular y la mejor para empezar. 14 pines digitales y 6 analógicos.</figcaption></figure><figure>'+nano()+'<figcaption><b>Nano</b> Pequeña, cabe en una protoboard. Mismo cerebro que la UNO.</figcaption></figure><figure>'+mega()+'<figcaption><b>Mega 2560</b> Para proyectos grandes: 54 pines digitales y 16 analógicos.</figcaption></figure></div><h3>¿Qué se puede hacer?</h3><ul><li>Domótica: luces, puertas y riego automáticos</li><li>Robots que se mueven y esquivan obstáculos</li><li>Estaciones meteorológicas y registradores de datos</li><li>Alarmas, relojes y pantallas LCD</li><li>Juguetes, instrumentos musicales y proyectos escolares</li></ul><p class="note">Pregunta “¿qué sensores básicos puedo conectar?” para ver los más usados.</p></div>';
+function norm(s){return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")}
+function esc(s){return s.replace(/[&<>]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;"}[c]})}
+function sensorHTML(s,open){return '<details'+(open?' open':'')+'><summary><span class="ico'+(open?' big':'')+'">'+ICO[s.id]+'</span><span>'+s.n+'<span class="tag">'+s.t+'</span></span></summary><p><b>¿Qué hace?</b> '+s.q+'</p><p><b>¿Cómo funciona?</b> '+s.c+'</p><p><b>¿Para qué sirve?</b></p><ul>'+s.u.map(function(x){return'<li>'+x+'</li>'}).join('')+'</ul><p><b>Ejemplo de código</b></p><pre class="code">'+esc(CODE[s.id])+'</pre><p class="note">Tipo de señal: '+s.p+'</p></details>'}
+var PARTS='<div class="card"><h2>Partes de un Arduino</h2>'+INTRO.slice(INTRO.indexOf('<div class="fig">'),INTRO.indexOf('<h3>Placas'))+'<p class="note">Pregunta por “tipos de Arduino” para ver otras placas.</p></div>';
+var BOARDS=INTRO.slice(INTRO.indexOf('<div class="boards">'),INTRO.indexOf('<h3>¿Qué se puede hacer?'));
+var OTROS=[["Arduino UNO R4 (Minima / WiFi)","32 bits, más potente","Sucesora de la UNO con el mismo formato. La versión WiFi añade WiFi y Bluetooth."],["Leonardo y Micro","ATmega32U4","Pueden comportarse como teclado o ratón USB. La Micro es muy pequeña."],["Due","ARM de 32 bits, 3.3 V","Mucha más potencia para proyectos exigentes. Sus pines no toleran 5 V."],["Pro Mini","Mínima, sin USB","Barata y diminuta, para proyectos terminados. Se programa con un adaptador USB."],["Nano 33 IoT / MKR WiFi 1010","WiFi y Bluetooth","Para internet de las cosas: enviar datos a la nube. Trabajan a 3.3 V."],["Nano ESP32","ESP32-S3","WiFi y Bluetooth en formato Nano, muy usada en domótica."]];
+var PR=[["Nivel básico",[["Blink","Hacer parpadear un LED.","Arduino, LED, resistencia"],["Semáforo","Tres LED que cambian de color con temporizador.","3 LED, 3 resistencias"],["Luz nocturna automática","Se enciende sola cuando oscurece.","LDR, LED"],["Control de brillo","Un LED que se atenúa al girar una perilla.","Potenciómetro, LED"]]],["Nivel intermedio",[["Alarma de movimiento","Suena cuando alguien pasa.","PIR, buzzer"],["Sensor de parqueo","Pita más rápido al acercarte a un obstáculo.","HC-SR04, buzzer"],["Termómetro digital","Muestra la temperatura en una pantalla LCD.","LM35 o DHT11, LCD 16×2"],["Riego automático","Riega la planta cuando la tierra está seca.","Sensor de suelo, relé, bomba"],["Detector de gas o humo","Da la alarma ante fugas.","MQ-2, buzzer"]]],["Nivel avanzado",[["Robot que esquiva obstáculos","Se mueve solo y evita choques.","HC-SR04, motores, driver L298N"],["Robot seguidor de línea","Sigue una línea negra en el piso.","Sensores IR, motores"],["Estación meteorológica","Registra temperatura y humedad en el tiempo.","DHT22, módulo SD, reloj RTC"],["Cerradura con tarjeta RFID","Abre solo con la tarjeta correcta.","Lector RFID, servo"],["Control por Bluetooth","Enciende cosas desde el celular.","Módulo HC-05, relé"]]]];
+function projects(){return '<div class="card"><h2>Proyectos que puedes hacer con Arduino</h2><p>Empieza por los básicos y ve subiendo de nivel.</p>'+PR.map(function(l){return '<h3>'+l[0]+'</h3><ul>'+l[1].map(function(p){return '<li><b>'+p[0]+':</b> '+p[1]+' <span class="note">Materiales: '+p[2]+'.</span></li>'}).join('')+'</ul>'}).join('')+'<p class="note">Pregunta por un sensor para ver cómo funciona y su ejemplo de código.</p></div>'}
+function types(){return '<div class="card"><h2>Tipos de Arduino</h2><p>Hay muchas placas; estas son las principales.</p>'+BOARDS+'<h3>Otras placas</h3>'+OTROS.map(function(o){return '<details><summary><span>'+o[0]+'<span class="tag">'+o[1]+'</span></span></summary><p>'+o[2]+'</p></details>'}).join('')+'<p class="note">Para empezar, la UNO es la mejor opción: tiene más tutoriales y ejemplos.</p></div>'}
+function sensorsList(){return '<div class="card"><h2>Sensores básicos para Arduino</h2><p>Toca cada uno para ver cómo funciona, para qué sirve y un ejemplo de código.</p>'+SENS.map(function(s){return sensorHTML(s,false)}).join('')+'<p class="note">Los sensores analógicos usan los pines A0–A5; los digitales, los pines 2–13.</p></div>'}
+function lev(a,b){var m=[],i,j;for(i=0;i<=a.length;i++)m[i]=[i];for(j=1;j<=b.length;j++)m[0][j]=j;for(i=1;i<=a.length;i++)for(j=1;j<=b.length;j++)m[i][j]=Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return m[a.length][b.length]}
+var TOP=[
+{id:"proy",f:projects,k:{proyectos:3,proyecto:3,"puede hacer":3,"puedo hacer":2,hacer:1,construir:2,ideas:2,armar:2,practicar:0}},
+{id:"tipos",f:types,k:{tipos:3,tipo:3,modelos:3,versiones:3,placas:2,placa:1,diferencia:2,leonardo:2,nano:1,mega:1,due:1}},
+{id:"partes",f:function(){return PARTS},k:{partes:3,parte:2,conforman:2,conforma:2,componentes:2,compone:2,pines:2,estructura:2,anatomia:3}},
+{id:"sens",f:sensorsList,k:{sensores:2,sensor:2,conectar:1,instalar:1,modulos:1,modulo:1,utilizar:1}},
+{id:"intro",f:function(){return INTRO},k:{arduino:0.5,funciona:3,"que es":3,definicion:3,explica:2,explicame:2,"como trabaja":3}},
+{id:"quiz",f:function(){qi=0;sc=0;return '<div class="card" id="qz"></div>'},k:{quiz:3,practicar:2,examen:3,prueba:2,test:2,evaluacion:3}}
+];
+function answer(t){
+ var n=norm(t),w=n.split(/[^a-z0-9]+/).filter(Boolean),best=null,bs=0;
+ TOP.forEach(function(p){var s=0;for(var k in p.k){var m=k.indexOf(" ")>-1?n.indexOf(k)>-1:w.some(function(x){return x===k||(k.length>=5&&(x.indexOf(k)===0||lev(x,k)<=1))});if(m)s+=p.k[k]}if(s>bs){bs=s;best=p}});
+ var found=SENS.filter(function(s){return s.k.some(function(k){k=norm(k);return k.length<=3?w.indexOf(k)>-1:n.indexOf(k)>-1})});
+ if(best&&bs>=2&&best.id!=="sens"&&best.id!=="intro")return best.f();
+ if(found.length&&found.length<4&&!/sensores/.test(n))return '<div class="card"><h2>'+found.map(function(s){return s.n}).join(' y ')+'</h2>'+found.map(function(s){return sensorHTML(s,true)}).join('')+'</div>';
+ if(best)return best.f();
+ return '<div class="card"><h2>No encontré esa pregunta</h2><p>Puedo responderte sobre: <b>qué proyectos hacer</b>, <b>tipos de Arduino</b>, <b>partes de un Arduino</b>, <b>sensores básicos</b> y <b>cómo funciona</b>. También puedes escribir “quiz” para practicar. Prueba con una sugerencia de arriba.</p></div>'}
+function answerOld(t){
+ var n=norm(t),found=SENS.filter(function(s){return s.k.some(function(k){return n.indexOf(norm(k))>-1})});
+ if(/quiz|practic|examen|prueba/.test(n)){qi=0;sc=0;return '<div class="card" id="qz"></div>'}
+ if(found.length&&found.length<4&&!/sensores/.test(n)){return '<div class="card"><h2>'+found.map(function(s){return s.n}).join(' y ')+'</h2>'+found.map(function(s){return sensorHTML(s,true)}).join('')+'</div>'}
+ if(/sensor|conectar|instalar|componente|modulo/.test(n)){return '<div class="card"><h2>Sensores básicos para Arduino</h2><p>Toca cada uno para ver cómo funciona y para qué sirve.</p>'+SENS.map(function(s){return sensorHTML(s,false)}).join('')+'<p class="note">Los sensores analógicos usan los pines A0–A5; los digitales, los pines 2–13.</p></div>'}
+ if(/arduino|funciona|partes|que es|hacer|proyecto|placa|uno|nano|pines/.test(n)){return INTRO}
+ return '<div class="card"><h2>No encontré esa pregunta</h2><p>Puedo explicarte <b>qué es Arduino, cómo funciona, sus partes y qué se puede hacer</b>, y también los <b>sensores básicos</b> que puedes conectarle. Prueba con una sugerencia o escribe, por ejemplo, “sensor de movimiento”.</p></div>'}
+function ask(t){t=t.trim();if(!t)return;var o=document.getElementById("out");o.innerHTML='<p class="you">'+esc(t)+'</p>'+answer(t);if(document.getElementById("qz"))qshow();o.scrollIntoView({behavior:"smooth",block:"start"})}
+var SUG=["¿Cómo funciona un Arduino?","¿Qué proyectos puedo hacer con un Arduino?","¿Qué tipos de Arduino hay?","¿Qué partes conforman un Arduino?","¿Qué sensores básicos puedo utilizar en un Arduino?","Sensor de distancia","Practicar con un quiz"];
+var ch=document.getElementById("chips");
+SUG.forEach(function(s){var b=document.createElement("button");b.className="chip";b.type="button";b.textContent=s;b.onclick=function(){document.getElementById("q").value=s;ask(s)};ch.appendChild(b)});
+document.getElementById("f").onsubmit=function(e){e.preventDefault();ask(document.getElementById("q").value)};
+(function(){var s='',i,x,px,c;
+for(i=0;i<=18;i++)s+='<path d="M'+i*50+' 0V600" stroke-width=".4" opacity=".25"/>';
+for(i=0;i<=12;i++)s+='<path d="M0 '+i*50+'H900" stroke-width=".4" opacity=".25"/>';
+var b='<rect x="120" y="130" width="660" height="340" rx="22" stroke-width="2.5" filter="url(#gl)"/><rect x="134" y="144" width="632" height="312" rx="14" stroke-width=".8" opacity=".5"/><rect x="84" y="190" width="110" height="84" stroke-width="2"/><rect x="96" y="202" width="86" height="60" stroke-width=".8" opacity=".6"/><rect x="84" y="340" width="90" height="90" rx="4" stroke-width="2"/><circle cx="129" cy="385" r="22" stroke-width=".8"/><circle cx="280" cy="200" r="16" stroke-width="2" stroke="var(--cu)"/><circle cx="280" cy="200" r="7" stroke="var(--cu)"/><rect class="pulse" x="430" y="270" width="170" height="60" rx="4" stroke-width="2.5" filter="url(#gl)"/><text x="515" y="306" text-anchor="middle" fill="currentColor" stroke="none" font-size="15" font-family="monospace">ATMEGA328P</text><rect x="250" y="300" width="60" height="60" rx="3" stroke-width="1.6"/><circle cx="690" cy="395" r="26" stroke-width="1.5"/><rect x="330" y="146" width="420" height="24" stroke-width="1.6"/><rect x="330" y="430" width="420" height="24" stroke-width="1.6"/>';
+for(i=0;i<16;i++){x=340+i*25;b+='<rect x="'+x+'" y="152" width="10" height="12" stroke-width="1"/><rect x="'+x+'" y="436" width="10" height="12" stroke-width="1"/>'}
+for(i=0;i<10;i++){x=440+i*16;b+='<path d="M'+x+' 262V270M'+x+' 330V338" stroke-width="1.5"/>'}
+for(i=0;i<8;i++){x=445+i*20;px=345+i*50;c=i%2?'var(--cu)':'currentColor';b+='<path d="M'+x+' 262V232L'+px+' 200V170M'+x+' 338V368L'+px+' 400V430" stroke="'+c+'" stroke-width="1.3" opacity=".8"/><circle cx="'+px+'" cy="200" r="3" fill="'+c+'" stroke="none"/><circle cx="'+px+'" cy="400" r="3" fill="'+c+'" stroke="none"/>'}
+s+='<ellipse cx="450" cy="300" rx="430" ry="270" fill="url(#rg)" stroke="none"/><g transform="rotate(-12 450 300)">'+b+'</g>';
+s+='<path d="M20 90H110L140 60H260M880 80H760L730 50H640M30 540H150L180 570H300M880 520H780L750 550H650" stroke-width="1.2" opacity=".7"/><g fill="currentColor" stroke="none"><circle cx="260" cy="60" r="4"/><circle cx="640" cy="50" r="4"/><circle cx="300" cy="570" r="4"/><circle cx="650" cy="550" r="4"/></g>';
+document.getElementById("bg").innerHTML='<svg viewBox="0 0 900 600" preserveAspectRatio="xMidYMid slice" fill="none" stroke="currentColor"><defs><filter id="gl" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><radialGradient id="rg"><stop offset="0" style="stop-color:currentColor;stop-opacity:.35"/><stop offset="1" style="stop-color:currentColor;stop-opacity:0"/></radialGradient></defs>'+s+'</svg>'})();
+document.getElementById("out").innerHTML=INTRO;
+</script>
+</body>
+</html>
